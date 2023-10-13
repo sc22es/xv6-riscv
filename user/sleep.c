@@ -1,17 +1,18 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
-//int sleep(int n)
 
 int main(int argc, char *argv[]) {
-    printf("fj");
 
     // only allows 1 arg
-    if (argc == 1) {
+
+    if (argc != 2) {
         printf("ERROR: Sleep only accepts 1 argument\n");
         exit(0);
     }
 
-    
+    int i = atoi(argv[1]);
+    sleep(i);
+    printf("%d", argc);
     exit(0);
 };
