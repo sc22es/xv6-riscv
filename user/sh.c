@@ -165,6 +165,51 @@ main(void)
         fprintf(2, "cannot cd %s\n", buf+3);
       continue;
     }
+    // ----- history updating ----
+    //
+    // Open .history, read until the end of file,
+    // write the current command, close .history.
+    int hist = open(".history",  O_CREATE | O_RDWR);
+    // Read until end of file
+    int count = 0;
+    char temp;
+    while (read(hist, &temp, 1) != 0)
+      if (temp == '\n')
+        count++;
+    
+    // Append the current command to .history
+    int i = 0;
+    do {
+      write(hist, &buf[i], 1);
+      i++;
+    } while (buf[i-1] != '\n');
+    close(hist);
+    
+    // Remove the first command if we overflowed 10 commands,
+    // which is our set limit.
+    if (count == 10) {
+      hist = open(".history", O_RDWR);
+      int dup_hist = open(".history", O_RDWR);
+      char trunc_hist[10*104];
+      int start = 0;
+      int size = 0;
+      // Read file, except first line, into trunc_hist.
+      while (read(hist, &temp, 1) != 0) {
+        if (start == 1) {
+          trunc_hist[size] = temp;
+          size++;
+        }
+        if ((start == 0) & (temp == '\n'))
+          start = 1;
+        write(dup_hist, '\0', 1);
+      }
+      close(hist);
+      close(dup_hist);
+      hist = open(".history", O_RDWR);   
+      write(hist, trunc_hist, size);
+      close(hist);
+    }
+    // ----- history updating ----
     if(fork1() == 0)
       runcmd(parsecmd(buf));
     wait(0);
